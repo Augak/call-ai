@@ -50,7 +50,7 @@ const DEFAULT_SYSTEM_PROMPT = `You are TanStack Chat, an AI assistant using Mark
 
 Keep responses concise and well-structured. Use appropriate Markdown formatting to enhance readability and understanding.`
 
-// Non-streaming implementation
+// Streaming implementation
 export const genAIResponse = createServerFn({ method: 'POST', response: 'raw' })
   .validator((value: unknown) => {
     const validation = validateChatPayload(value)
@@ -162,7 +162,7 @@ export const genAIResponse = createServerFn({ method: 'POST', response: 'raw' })
           errorMessage = 'Authentication failed. Please check your Anthropic API key.'
           statusCode = 401 // Unauthorized
         } else {
-          errorMessage = error.message
+          errorMessage = 'The AI provider could not complete the request. Please try again.'
         }
       }
       
