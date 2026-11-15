@@ -88,6 +88,14 @@ function Home() {
         },
       })
 
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => null) as { error?: unknown } | null
+        const message = errorPayload && typeof errorPayload.error === 'string'
+          ? errorPayload.error
+          : `AI request failed (${response.status}). Please try again.`
+        throw new Error(message)
+      }
+
       const reader = response.body?.getReader()
       if (!reader) {
         throw new Error('No reader found in response')
