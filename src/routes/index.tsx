@@ -12,6 +12,7 @@ import {
 } from '../components'
 import { useConversations, useAppState, store, actions } from '../store'
 import { genAIResponse, type Message } from '../utils'
+import { buildConversationContext } from '../utils/chat-request.mjs'
 
 function Home() {
   const {
@@ -67,7 +68,7 @@ function Home() {
   }, []);
 
   // Helper function to process AI response
-  const processAIResponse = useCallback(async (conversationId: string, userMessage: Message) => {
+  const processAIResponse = useCallback(async (conversationId: string, requestMessages: Message[]) => {
     try {
       // Get active prompt
       const activePrompt = getActivePrompt(store.state)
@@ -82,7 +83,7 @@ function Home() {
       // Get AI response
       const response = await genAIResponse({
         data: {
-          messages: [...messages, userMessage],
+          messages: requestMessages,
           systemPrompt,
         },
       })
@@ -192,7 +193,7 @@ function Home() {
       }
       await addMessage(conversationId, errorMessage)
     }
-  }, [messages, getActivePrompt, addMessage]);
+  }, [getActivePrompt, addMessage]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
@@ -204,6 +205,8 @@ function Home() {
     setError(null)
     
     const conversationTitle = createTitleFromInput(currentInput)
+    const isNewConversation = !currentConversationId
+    const historyForRequest = isNewConversation ? [] : messages
 
     try {
       // Create the user message object
@@ -255,8 +258,11 @@ function Home() {
         await addMessage(conversationId, userMessage)
       }
       
+      // Build context from this conversation only; never reuse another chat's history.
+      const requestMessages = buildConversationContext(historyForRequest, userMessage, isNewConversation)
+
       // Process with AI after message is stored
-      await processAIResponse(conversationId, userMessage)
+      await processAIResponse(conversationId, requestMessages)
       
     } catch (error) {
       console.error('Error:', error)
