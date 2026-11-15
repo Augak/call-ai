@@ -311,6 +311,8 @@ function Home() {
       {/* Settings Button */}
       <div className="absolute z-50 top-5 right-5">
         <button
+          aria-label="Open settings"
+          title="Open settings"
           onClick={() => setIsSettingsOpen(true)}
           className="flex items-center justify-center w-10 h-10 text-white transition-opacity rounded-full bg-gradient-to-r from-orange-500 to-red-600 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-orange-500"
         >
