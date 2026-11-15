@@ -171,7 +171,7 @@ export const genAIResponse = createServerFn({ method: 'POST', response: 'raw' })
         details: error instanceof Error ? error.name : undefined
       }), {
         status: statusCode,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       })
     }
   }) 
