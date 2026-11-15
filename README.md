@@ -104,3 +104,9 @@ For deployment, connect the repository in Netlify, configure environment variabl
 - Review model-provider retention and logging policies.
 - Test TalkBack, narrow Android widths, reduced motion, streaming states, errors, and retry/stop controls.
 - Record test evidence and outstanding limitations before release.
+
+## Chat request safety
+
+The server validates chat payloads before calling Anthropic. Requests are sent with POST, message and context sizes are bounded, custom system-prompt text is not logged, and model responses are marked `no-store`. Run `npm test` for the dependency-free request-boundary tests.
+
+**Production privacy blocker:** the current optional Convex conversation query is not owner-scoped and returns all conversations in its deployment. Do not enable Convex persistence for real users until authenticated per-user ownership and authorization checks are implemented and tested. See [Chat request security notes](docs/CHAT_REQUEST_SECURITY.md).
