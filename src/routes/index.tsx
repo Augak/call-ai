@@ -193,11 +193,12 @@ function Home() {
       }
     } catch (error) {
       console.error('Error in AI response:', error)
-      // Add an error message to the conversation
+      const userFacingError = error instanceof Error ? error.message : 'The request could not be completed. Please try again.'
+      // Add a safe, actionable error message to the conversation
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant' as const,
-        content: 'Sorry, I encountered an error generating a response. Please set the required API keys in your environment variables.',
+        content: userFacingError,
       }
       await addMessage(conversationId, errorMessage)
     }
@@ -229,16 +230,13 @@ function Home() {
       // If no current conversation, create one in Convex first
       if (!conversationId) {
         try {
-          console.log('Creating new Convex conversation with title:', conversationTitle)
           // Create a new conversation with our title
           const convexId = await createNewConversation(conversationTitle)
           
           if (convexId) {
-            console.log('Successfully created Convex conversation with ID:', convexId)
             conversationId = convexId
             
             // Add user message directly to Convex
-            console.log('Adding user message to Convex conversation:', userMessage.content)
             await addMessage(conversationId, userMessage)
           } else {
             console.warn('Failed to create Convex conversation, falling back to local')
@@ -277,7 +275,7 @@ function Home() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant' as const,
-        content: 'Sorry, I encountered an error processing your request.',
+        content: error instanceof Error ? error.message : 'The request could not be completed. Please try again.',
       }
       if (currentConversationId) {
         await addMessage(currentConversationId, errorMessage)
