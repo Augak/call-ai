@@ -26,6 +26,7 @@ export const WelcomeScreen = ({
         <div className="relative max-w-xl mx-auto">
           <textarea
             value={input}
+            aria-label="Message"
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -40,6 +41,8 @@ export const WelcomeScreen = ({
           />
           <button
             type="submit"
+            aria-label="Send message"
+            title="Send message"
             disabled={!input.trim() || isLoading}
             className="absolute p-2 text-orange-500 transition-colors -translate-y-1/2 right-2 top-1/2 hover:text-orange-400 disabled:text-gray-500 focus:outline-none"
           >
