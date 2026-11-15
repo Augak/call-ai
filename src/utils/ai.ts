@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { Anthropic } from '@anthropic-ai/sdk'
+import { validateChatPayload } from './chat-request.mjs'
 
 export interface Message {
   id: string
@@ -50,13 +51,14 @@ const DEFAULT_SYSTEM_PROMPT = `You are TanStack Chat, an AI assistant using Mark
 Keep responses concise and well-structured. Use appropriate Markdown formatting to enhance readability and understanding.`
 
 // Non-streaming implementation
-export const genAIResponse = createServerFn({ method: 'GET', response: 'raw' })
-  .validator(
-    (d: {
-      messages: Array<Message>
-      systemPrompt?: { value: string; enabled: boolean }
-    }) => d,
-  )
+export const genAIResponse = createServerFn({ method: 'POST', response: 'raw' })
+  .validator((value: unknown) => {
+    const validation = validateChatPayload(value)
+    if (!validation.ok) {
+      throw new Error(validation.error)
+    }
+    return validation.data
+  })
   // .middleware([loggingMiddleware])
   .handler(async ({ data }) => {
     // Check for API key in environment variables
@@ -92,20 +94,13 @@ export const genAIResponse = createServerFn({ method: 'GET', response: 'raw' })
     if (formattedMessages.length === 0) {
       return new Response(JSON.stringify({ error: 'No valid messages to send' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       })
     }
 
     const systemPrompt = data.systemPrompt?.enabled
       ? `${DEFAULT_SYSTEM_PROMPT}\n\n${data.systemPrompt.value}`
       : DEFAULT_SYSTEM_PROMPT
-
-    // Debug log to verify prompt layering
-    console.log('System Prompt Configuration:', {
-      hasCustomPrompt: data.systemPrompt?.enabled,
-      customPromptValue: data.systemPrompt?.value,
-      finalPrompt: systemPrompt,
-    })
 
     try {
       const stream = await anthropic.messages.stream({
@@ -146,7 +141,8 @@ export const genAIResponse = createServerFn({ method: 'GET', response: 'raw' })
 
       return new Response(transformedStream, {
         headers: {
-          'Content-Type': 'application/x-ndjson',
+          'Content-Type': 'application/x-ndjson; charset=utf-8',
+          'Cache-Control': 'no-store',
         },
       })
     } catch (error) {
